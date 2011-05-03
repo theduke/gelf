@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * gelf.module
+ *
+ */
+
+/**
+ * Implementation of hook_menu()
+ *
+ * Set up admin settings callbacks, etc.
+ */
+function gelf_menu() {
+  $items = array();
+  $items['admin/settings/logging/gelf'] = array(
+    'title' => 'GELF settings',
+    'description' => 'Settings for logging to Graylog2 using GELF.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('gelf_admin_settings_form'),
+    'access arguments' => array('administer gelf'),
+  );
+  return $items;
+}
+
+/**
+ * Implemetation of hook_perm()
+ *
+ * Allows admins to control access to gelf settings.
+ */
+function gelf_perm() {
+  return array('administer gelf');
+}
+
+/**
+ * Implement hook_watchdog().
+ */
+function gelf_watchdog($entry) {
+  if (module_exists('libraries') && $gelflib_path = libraries_get_path('gelf-php') . '/gelf.php)') {
+    if (file_exists($gelflib_path)) {
+      require_once $gelflib_path;
+      $host = variable_get('gelf_host', 'localhost');
+      $port = variable_get('gelf_port', 12201);
+      $gelf = new GELFMessage($host, $port);
+      $message = strip_tags(is_null($entry['variables']) ? $entry['message'] : strtr($entry['message'], $entry['variables']));
+      $short_message = substr($message, 0, strpos(wordwrap($message, 100), "\n"));
+      $gelf->setShortMessage($message);
+      $gelf->setFullMessage($message);
+      $gelf->setHost($entry['ip']);
+      $gelf->setFacility($entry['type']);
+      $gelf->setLevel($entry['severity']);
+      $gelf->setTimestamp($entry['timestamp']);
+      $gelf->setAdditional("Referer", $entry['referer']);
+      $gelf->setAdditional("Link", $entry['link']);
+      $gelf->setAdditional("Username", $entry['user']->name);
+      $gelf->setAdditional("Uid", $entry['user']->uid);
+      $gelf->setAdditional("Request_uri", $entry['request_uri']);
+      $gelf->send();
+    }
+  }
+  else {
+    drupal_set_message(t('GELF module requires libraries to be installed!'), 'error');
+  }
+}
+
+/**
+ * Menu callback for GELF admin settings.
+ */
+function gelf_admin_settings_form() {
+  $form = array();
+
+  $form['gelf_host'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Graylog2 host'),
+    '#default_value' => variable_get('gelf_host', 'localhost'),
+  );
+  $form['gelf_port'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Graylog2 GELF port'),
+    '#default_value' => variable_get('gelf_port', 12201),
+  );
+  return system_settings_form($form);
+}
