@@ -36,7 +36,7 @@ function gelf_perm() {
  * Implement hook_watchdog().
  */
 function gelf_watchdog($entry) {
-  if (module_exists('libraries') && $gelflib_path = libraries_get_path('gelf-php') . '/gelf.php)') {
+  if (module_exists('libraries') && $gelflib_path = libraries_get_path('gelf-php') . '/gelf.php') {
     if (file_exists($gelflib_path)) {
       require_once $gelflib_path;
       $host = variable_get('gelf_host', 'localhost');
