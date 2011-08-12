@@ -45,7 +45,7 @@ function gelf_watchdog($entry) {
       $message = strip_tags(is_null($entry['variables']) ? $entry['message'] : strtr($entry['message'], $entry['variables']));
       $short_message = substr($message, 0, strpos(wordwrap($message, 100), "\n"));
       $username = isset($entry['user']->name) ? $entry['user']->name : variable_get('anonymous', t('Anonymous'));
-      $gelf->setShortMessage($message);
+      $gelf->setShortMessage($short_message);
       $gelf->setFullMessage($message);
       $gelf->setHost($entry['ip']);
       $gelf->setFacility($entry['type']);
