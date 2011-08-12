@@ -44,6 +44,7 @@ function gelf_watchdog($entry) {
       $gelf = new GELFMessage($host, $port);
       $message = strip_tags(is_null($entry['variables']) ? $entry['message'] : strtr($entry['message'], $entry['variables']));
       $short_message = substr($message, 0, strpos(wordwrap($message, 100), "\n"));
+      $username = isset($entry['user']->name) ? $entry['user']->name : variable_get('anonymous', t('Anonymous'));
       $gelf->setShortMessage($message);
       $gelf->setFullMessage($message);
       $gelf->setHost($entry['ip']);
@@ -52,7 +53,7 @@ function gelf_watchdog($entry) {
       $gelf->setTimestamp($entry['timestamp']);
       $gelf->setAdditional("Referer", $entry['referer']);
       $gelf->setAdditional("Link", $entry['link']);
-      $gelf->setAdditional("Username", $entry['user']->name);
+      $gelf->setAdditional("Username", $username);
       $gelf->setAdditional("Uid", $entry['user']->uid);
       $gelf->setAdditional("Request_uri", $entry['request_uri']);
       $gelf->send();
