@@ -43,7 +43,7 @@ function gelf_watchdog($entry) {
       $port = variable_get('gelf_port', 12201);
       $gelf = new GELFMessage($host, $port);
       $message = strip_tags(is_null($entry['variables']) ? $entry['message'] : strtr($entry['message'], $entry['variables']));
-      $short_message = substr($message, 0, strpos(wordwrap($message, 100), "\n"));
+      $short_message = preg_replace('/\s+?(\S+)?$/u', '', substr($message, 0, 100));
       $username = isset($entry['user']->name) ? $entry['user']->name : variable_get('anonymous', t('Anonymous'));
       $gelf->setShortMessage($short_message);
       $gelf->setFullMessage($message);
