@@ -47,7 +47,7 @@ function gelf_watchdog($entry) {
       $username = isset($entry['user']->name) ? $entry['user']->name : variable_get('anonymous', t('Anonymous'));
       $gelf->setShortMessage($short_message);
       $gelf->setFullMessage($message);
-      $gelf->setHost($entry['ip']);
+      $gelf->setHost(php_uname('n'));
       $gelf->setFacility($entry['type']);
       $gelf->setLevel($entry['severity']);
       $gelf->setTimestamp($entry['timestamp']);
@@ -56,6 +56,8 @@ function gelf_watchdog($entry) {
       $gelf->setAdditional("Username", $username);
       $gelf->setAdditional("Uid", $entry['user']->uid);
       $gelf->setAdditional("Request_uri", $entry['request_uri']);
+      $gelf->setAdditional("Server_host", $_SERVER['HTTP_HOST']);
+      $gelf->setAdditional("Client_host", $entry['ip']);
       $gelf->send();
     }
   }
