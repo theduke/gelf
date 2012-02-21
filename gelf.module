@@ -68,12 +68,16 @@ function gelf_watchdog($entry) {
         $gelf->send();
       }
       catch (Exception $e) {
-        drupal_set_message(t('Caught GELF exception: %message', array('%message' => $e->getMessage())), 'error');
+        if(user_access('administer gelf')) {
+          drupal_set_message(t('Caught GELF exception: %message', array('%message' => $e->getMessage())), 'error');
+        }
       }
     }
   }
   else {
-    drupal_set_message(t('GELF module requires libraries to be installed!'), 'error');
+    if(user_access('administer gelf')) {
+      drupal_set_message(t('GELF module requires libraries to be installed!'), 'error');
+    }
   }
 }
 
