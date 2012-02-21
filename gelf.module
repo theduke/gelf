@@ -88,5 +88,11 @@ function gelf_admin_settings_form() {
     '#title' => t('Graylog2 GELF port'),
     '#default_value' => variable_get('gelf_port', 12201),
   );
+
+  $gelflib_path = libraries_get_path('gelf-php') . '/gelf.php';
+  if (!file_exists($gelflib_path)) {
+    drupal_set_message(t('GELF module requires the GELF PHP library to be installed.  View the README for installation instructions.'), 'error');
+  }
+
   return system_settings_form($form);
 }
