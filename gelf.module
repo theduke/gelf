@@ -42,7 +42,7 @@ function gelf_watchdog($entry) {
       $host = variable_get('gelf_host', 'localhost');
       $port = variable_get('gelf_port', 12201);
       $gelf = new GELFMessage($host, $port);
-      $message = strip_tags(is_null($entry['variables']) ? $entry['message'] : strtr($entry['message'], $entry['variables']));
+      $message = filter_xss(is_null($entry['variables']) ? $entry['message'] : strtr($entry['message'], $entry['variables']));
       $short_msg_length = 100;
       if(strlen($message) > $short_msg_length) {
         $short_message = preg_replace('/\s+?(\S+)?$/u', '', substr($message, 0, $short_msg_length));
