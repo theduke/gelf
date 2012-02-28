@@ -1,4 +1,4 @@
-The GELF module requires the GELF php library.
+The GELF module requires the GELF PHP library.
 
 To install, use one of the following methods:
 
@@ -11,3 +11,9 @@ To install, use one of the following methods:
 
     # From your site's docroot.
     drush gelf-download
+
+Older versions of the GELF PHP library contained the file 'gelf.php'.
+Newer versions have split that out into GELFMessage.php and
+GELFMessagePublisher.php. If your instance of gelf-php doesn't have
+those two newer files, you probably need to do a 'git pull' in the
+gelf-php directory to get the latest version.

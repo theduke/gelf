@@ -36,12 +36,13 @@ function gelf_perm() {
  * Implement hook_watchdog().
  */
 function gelf_watchdog($entry) {
-  if (module_exists('libraries') && $gelflib_path = libraries_get_path('gelf-php') . '/gelf.php') {
-    if (file_exists($gelflib_path)) {
-      require_once $gelflib_path;
+  if (module_exists('libraries') && $gelflib_path = libraries_get_path('gelf-php')) {
+    if (file_exists($gelflib_path . '/GELFMessage.php') && file_exists($gelflib_path . '/GELFMessagePublisher.php')) {
+      require_once $gelflib_path . '/GELFMessage.php';
+      require_once $gelflib_path . '/GELFMessagePublisher.php';
       $host = variable_get('gelf_host', 'localhost');
       $port = variable_get('gelf_port', 12201);
-      $gelf = new GELFMessage($host, $port);
+      $gelf = new GELFMessage();
       $message = filter_xss(is_null($entry['variables']) ? $entry['message'] : strtr($entry['message'], $entry['variables']));
       $short_msg_length = 100;
       if(strlen($message) > $short_msg_length) {
@@ -65,7 +66,8 @@ function gelf_watchdog($entry) {
       $gelf->setAdditional("Server_host", $_SERVER['HTTP_HOST']);
       $gelf->setAdditional("Client_host", $entry['ip']);
       try {
-        $gelf->send();
+        $publisher = new GELFMessagePublisher($host, $port);
+        $publisher->publish($gelf);
       }
       catch (Exception $e) {
         if(user_access('administer gelf')) {
@@ -98,8 +100,8 @@ function gelf_admin_settings_form() {
     '#default_value' => variable_get('gelf_port', 12201),
   );
 
-  $gelflib_path = libraries_get_path('gelf-php') . '/gelf.php';
-  if (!file_exists($gelflib_path)) {
+  $gelflib_path = libraries_get_path('gelf-php');
+  if (!file_exists($gelflib_path . '/GELFMessage.php') || !file_exists($gelflib_path . '/GELFMessagePublisher.php')) {
     drupal_set_message(t('GELF module requires the GELF PHP library to be installed.  View the README for installation instructions.'), 'error');
   }
 
