@@ -7,29 +7,17 @@
  */
 
 /**
- * Implementation of hook_menu()
- *
- * Set up admin settings callbacks, etc.
- */
-function gelf_menu() {
-  $items = array();
-  $items['admin/settings/logging/gelf'] = array(
-    'title' => 'GELF settings',
-    'description' => 'Settings for logging to Graylog2 using GELF.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('gelf_admin_settings_form'),
-    'access arguments' => array('administer gelf'),
-  );
-  return $items;
-}
-
-/**
- * Implemetation of hook_perm()
+ * Implements hook_permission()
  *
  * Allows admins to control access to gelf settings.
  */
-function gelf_perm() {
-  return array('administer gelf');
+function gelf_permission() {
+  return array(
+    'administer gelf' => array(
+      'title' => t('administer gelf'),
+      'description' => t('Manage graylog2 host settings'),
+    ),
+  );
 }
 
 /**
@@ -84,10 +72,9 @@ function gelf_watchdog($entry) {
 }
 
 /**
- * Menu callback for GELF admin settings.
+ * Implements hook_form_FORM_ID_alter().
  */
-function gelf_admin_settings_form() {
-  $form = array();
+function gelf_form_system_logging_settings_alter(&$form, $form_state) {
 
   $form['gelf_host'] = array(
     '#type' => 'textfield',
@@ -105,5 +92,5 @@ function gelf_admin_settings_form() {
     drupal_set_message(t('GELF module requires the GELF PHP library to be installed.  View the README for installation instructions.'), 'error');
   }
 
-  return system_settings_form($form);
+  return $form;
 }
