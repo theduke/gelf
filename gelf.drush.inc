@@ -40,7 +40,7 @@ function drush_gelf_download() {
   else {
     $path = drush_get_context('DRUSH_DRUPAL_ROOT');
     if (module_exists('libraries')) {
-      $path .= '/' . libraries_get_path('') . '/gelf-php';
+      $path .= '/' . libraries_get_path('gelf-php');
     }
   }
 
