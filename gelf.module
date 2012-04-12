@@ -57,9 +57,9 @@ function gelf_watchdog($entry) {
         $publisher = new GELFMessagePublisher($host, $port);
         $publisher->publish($gelf);
       }
-      catch (Exception $e) {
+      catch (UnexpectedValueException $e) {
         if(user_access('administer gelf')) {
-          drupal_set_message(t('Caught GELF exception: %message', array('%message' => $e->getMessage())), 'error');
+          drupal_set_message(t('Failed to publish gelf message: %message', array('%message' => $e->getMessage())), 'error');
         }
       }
     }
