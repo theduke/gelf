@@ -13,8 +13,7 @@ function gelf_requirements($phase) {
   $requirements = array();
 
   if ($phase == 'runtime') {
-    $gelflib_path = libraries_get_path('gelf-php');
-    if (!file_exists($gelflib_path . '/GELFMessage.php') || !file_exists($gelflib_path . '/GELFMessagePublisher.php')) {
+    if (!gelf_require()) {
       $requirements['gelf'] = array(
         'value' => t('Not installed'),
         'severity' => REQUIREMENT_ERROR,

@@ -12,6 +12,13 @@ To install, use one of the following methods:
     # From your site's docroot.
     drush gelf-download
 
+3. Install the module via composer, or in your own composer.json:
+    {
+      "require":{
+        "graylog2/gelf-php": "dev-master"
+      }
+    }
+
 Older versions of the GELF PHP library contained the file 'gelf.php'.
 Newer versions have split that out into GELFMessage.php and
 GELFMessagePublisher.php. If your instance of gelf-php doesn't have
