@@ -56,6 +56,13 @@ function gelf_watchdog($entry) {
   $gelf->setAdditional("Request_uri", $entry['request_uri']);
   $gelf->setAdditional("Server_host", $_SERVER['HTTP_HOST']);
   $gelf->setAdditional("Client_host", $entry['ip']);
+
+  // Add additional fields configured with the interface.
+  $additional = variable_get('gelf_fields', array());
+  foreach ($additional as $field) {
+    $gelf->setAdditional($field['field'], $field['value']);
+  }
+
   try {
     $publisher = new GELFMessagePublisher($host, $port);
     $publisher->publish($gelf);
@@ -71,17 +78,70 @@ function gelf_watchdog($entry) {
  * Implements hook_form_FORM_ID_alter().
  */
 function gelf_form_system_logging_settings_alter(&$form, $form_state) {
+  // Add submit hook to handle additional fields.
+  $form['#submit'][] = 'gelf_form_system_logging_settings_submit';
 
-  $form['gelf_host'] = array(
+  $form['gelf'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('GELF Settings'),
+    '#tree' => FALSE,
+    '#collapsible' => TRUE,
+  );
+
+  $form['gelf']['gelf_host'] = array(
     '#type' => 'textfield',
     '#title' => t('Graylog2 host'),
     '#default_value' => variable_get('gelf_host', 'localhost'),
   );
-  $form['gelf_port'] = array(
+  $form['gelf']['gelf_port'] = array(
     '#type' => 'textfield',
     '#title' => t('Graylog2 GELF port'),
     '#default_value' => variable_get('gelf_port', 12201),
   );
+
+  $form['gelf']['gelf_fields'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Custom fields'),
+    '#description' => t('You can add additional fields to your gelf messages.' .
+      'They will be added to every log message. Submit the form to add more ' .
+      'than three fields.'),
+    '#tree' => TRUE,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $fields = variable_get('gelf_fields', array());
+
+  // merge 3 new empty fields
+  $fields = array_merge($fields, array(
+    array('field' => '', 'value' => ''),
+    array('field' => '', 'value' => ''),
+    array('field' => '', 'value' => ''),
+  ));
+
+  $i = 1;
+  foreach ($fields as $field) {
+    $form['gelf']['gelf_fields']['field_' . $i] = array(
+      '#type' => 'fieldset',
+      '#title' => $field['field'] ? t('Field') . ': ' . $field['field'] : t('New field'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#tree' => TRUE,
+      'field' => array(
+        '#type' => 'textfield',
+        '#title' => t('Field name'),
+        '#default_value' => $field['field'],
+      ),
+      'value' => array(
+        '#type' => 'textfield',
+        '#title' => t('Value'),
+        '#default_value' => $field['value'],
+      )
+    );
+
+    ++$i;
+  }
+
 
   if (!gelf_require()) {
     drupal_set_message(t('GELF module requires the GELF PHP library to be installed.  View the README for installation instructions.'), 'error');
@@ -90,6 +150,22 @@ function gelf_form_system_logging_settings_alter(&$form, $form_state) {
   return $form;
 }
 
+function gelf_form_system_logging_settings_submit(&$form, $form_state) {
+  $values = $form_state['values'];
+
+  $fields = array();
+
+  foreach ($values['gelf_fields'] as $field_spec) {
+    $field_name = $field_spec['field'];
+    $value = $field_spec['value'];
+
+    if (strlen($field_name) > 0 || strlen($value) > 0) {
+      $fields[] = $field_spec;
+    }
+  }
+
+  variable_set('gelf_fields', $fields);
+}
 
 /**
  * Include gelf-php library.
